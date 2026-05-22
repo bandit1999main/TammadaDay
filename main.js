@@ -10,6 +10,7 @@ import {
   logoutAdmin,
   registerVisitor,
   loginVisitor,
+  loginWithGoogle,
   getActiveUser,
   logoutUser,
   fetchUserFavorites,
@@ -76,6 +77,7 @@ const guestName = document.getElementById('guestName');
 const guestEmail = document.getElementById('guestEmail');
 const guestPassword = document.getElementById('guestPassword');
 const btnGuestAuth = document.getElementById('btnGuestAuth');
+const btnGoogleAuth = document.getElementById('btnGoogleAuth');
 const guestAuthError = document.getElementById('guestAuthError');
 const toggleGuestMode = document.getElementById('toggleGuestMode');
 const guestPanelTitle = document.getElementById('guestPanelTitle');
@@ -695,6 +697,37 @@ if (guestAuthForm) {
     } else {
       if (guestAuthError) {
         guestAuthError.textContent = result.error || 'Authentication failed.';
+        guestAuthError.style.display = 'block';
+      }
+    }
+  });
+}
+
+// Google Sign-In button click listener
+if (btnGoogleAuth) {
+  btnGoogleAuth.addEventListener('click', async () => {
+    if (guestAuthError) guestAuthError.style.display = 'none';
+    
+    const originalText = btnGoogleAuth.innerHTML;
+    btnGoogleAuth.disabled = true;
+    btnGoogleAuth.innerHTML = '<span>Signing in...</span>';
+    
+    const result = await loginWithGoogle();
+    
+    btnGoogleAuth.disabled = false;
+    btnGoogleAuth.innerHTML = originalText;
+    
+    if (result.success) {
+      closeAuthModal();
+      if (successToast) {
+        successToast.textContent = `Welcome, ${result.user.displayName || result.user.email}!`;
+        successToast.classList.add('show');
+        setTimeout(() => successToast.classList.remove('show'), 3000);
+      }
+      await loadAndRenderProjects();
+    } else {
+      if (guestAuthError) {
+        guestAuthError.textContent = result.error || 'Google authentication failed.';
         guestAuthError.style.display = 'block';
       }
     }

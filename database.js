@@ -311,6 +311,54 @@ export async function loginVisitor(email, password) {
   }
 }
 
+// Log In with Google (Unified visitor/admin)
+export async function loginWithGoogle() {
+  if (useFirebase) {
+    try {
+      const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // If the Google email matches DEFAULT_ADMIN_EMAIL, elevate to Admin
+      if (user.email === DEFAULT_ADMIN_EMAIL) {
+        localStorage.setItem(LOCAL_AUTH_KEY, `google-admin-${Date.now()}`);
+        localStorage.removeItem(LOCAL_USER_SESSION_KEY);
+      } else {
+        localStorage.removeItem(LOCAL_AUTH_KEY);
+        localStorage.setItem(LOCAL_USER_SESSION_KEY, JSON.stringify({
+          email: user.email,
+          displayName: user.displayName || user.email.split('@')[0],
+          id: user.uid,
+          role: 'visitor'
+        }));
+      }
+      
+      triggerLocalAuthChange();
+      return { success: true, user };
+    } catch (error) {
+      console.error("❌ Firebase Google Login failed:", error);
+      return { success: false, error: error.message };
+    }
+  } else {
+    // Offline Mock Google Login
+    const mockEmail = "google.visitor@example.com";
+    const mockName = "Google Visitor";
+    const mockId = `google-mock-${Date.now()}`;
+    
+    localStorage.removeItem(LOCAL_AUTH_KEY);
+    localStorage.setItem(LOCAL_USER_SESSION_KEY, JSON.stringify({
+      email: mockEmail,
+      displayName: mockName,
+      id: mockId,
+      role: 'visitor'
+    }));
+    
+    triggerLocalAuthChange();
+    return { success: true, user: { email: mockEmail, displayName: mockName, uid: mockId } };
+  }
+}
+
 // Log In Admin
 export async function loginAdmin(email, password) {
   if (useFirebase) {
