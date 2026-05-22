@@ -23,8 +23,8 @@
         <nav>
           <ul id="navList">
             <li><a href="#home" class="nav-link active" data-section="home" id="navHome">Home</a></li>
-            <li><a href="#about" class="nav-link" data-section="about" id="navAbout">About</a></li>
             <li><a href="#projects" class="nav-link" data-section="projects" id="navProjects">Projects</a></li>
+            <li><a href="#about" class="nav-link" data-section="about" id="navAbout">About</a></li>
             <li><a href="#contact" class="nav-link" data-section="contact" id="navContact">Contact</a></li>
           </ul>
         </nav>
@@ -95,53 +95,105 @@
         </div>
       </section>
 
-      <!-- 2. ABOUT SECTION -->
+      <!-- 2. ABOUT SECTION (Resume-Style Layout) -->
       <section id="about">
         <div class="section-header">
           <p class="section-subtitle">Discover</p>
-          <h2>About Me</h2>
+          <h2>About Me & Resume</h2>
         </div>
-        <div class="about-grid">
-          <div class="about-bio glass-panel" id="aboutBioPanel">
-            <h3>Who is Bandit?</h3>
-            <p>
-              I am a digital artisan who loves building high-performance web applications. My coding journey revolves around creating beautiful, user-centered software designs backed by secure, optimized backend logic.
-            </p>
-            <p>
-              I believe that premium products lie at the intersection of stunning design and stellar performance. I'm constantly learning new web patterns and leveraging cutting-edge web platform capabilities to build next-generation applications.
-            </p>
+        
+        <div class="resume-container glass-panel">
+          <!-- Resume Header / Profile Banner -->
+          <div class="resume-header">
+            <div class="resume-title-block">
+              <h3 class="glow-text">Bandit</h3>
+              <p class="resume-subtitle-text">Full-Stack Developer & Software Engineer</p>
+            </div>
+            <div class="resume-contact-info">
+              <p><span class="logo-dot" style="margin-right: 0.25rem;"></span> 📍 Bangkok, Thailand</p>
+              <p>✉️ bandit1999main@gmail.com</p>
+            </div>
           </div>
-          <div class="skills-wrapper">
-            <div class="skills-category glass-panel">
-              <h4>Frontend Core</h4>
-              <div class="skills-grid">
-                <div class="skill-tag">HTML5 & CSS3</div>
-                <div class="skill-tag">JavaScript (ES6+)</div>
-                <div class="skill-tag">React.js</div>
-                <div class="skill-tag">Next.js</div>
-                <div class="skill-tag">Vite & Bundlers</div>
-                <div class="skill-tag">D3.js Visualization</div>
+          
+          <div class="resume-divider"></div>
+          
+          <!-- Resume Content Grid -->
+          <div class="resume-grid">
+            <!-- Left Column: Biography, Experience Timeline, Education Timeline -->
+            <div class="resume-left-col">
+              <!-- Summary Section -->
+              <div class="resume-section">
+                <h4 class="resume-section-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  Professional Summary
+                </h4>
+                <p id="resumeBio" class="resume-bio-text">
+                  <!-- Dynamically populated via main.js -->
+                </p>
+              </div>
+              
+              <!-- Work Experience Section -->
+              <div class="resume-section">
+                <h4 class="resume-section-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                  Work Experience
+                </h4>
+                <div id="resumeExperienceList" class="resume-timeline">
+                  <!-- Dynamically populated via main.js -->
+                </div>
+              </div>
+
+              <!-- Education Section -->
+              <div class="resume-section">
+                <h4 class="resume-section-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path></svg>
+                  Education
+                </h4>
+                <div id="resumeEducationList" class="resume-timeline">
+                  <!-- Dynamically populated via main.js -->
+                </div>
               </div>
             </div>
-            <div class="skills-category glass-panel">
-              <h4>Backend & Database</h4>
-              <div class="skills-grid">
-                <div class="skill-tag">Node.js</div>
-                <div class="skill-tag">Express & APIs</div>
-                <div class="skill-tag">GraphQL</div>
-                <div class="skill-tag">MongoDB & PostgreSQL</div>
-                <div class="skill-tag">Redis Cache</div>
-                <div class="skill-tag">Go Language</div>
-              </div>
-            </div>
-            <div class="skills-category glass-panel">
-              <h4>DevOps & Tools</h4>
-              <div class="skills-grid">
-                <div class="skill-tag">Git & GitHub</div>
-                <div class="skill-tag">Docker</div>
-                <div class="skill-tag">Firebase & Cloud</div>
-                <div class="skill-tag">Vercel & Netlify</div>
-                <div class="skill-tag">Linux Systems</div>
+
+            <!-- Right Column: Skills Layout -->
+            <div class="resume-right-col">
+              <h4 class="resume-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                Technical Skills
+              </h4>
+              <div class="resume-skills-wrapper">
+                <div class="skills-category glass-panel">
+                  <h4>Frontend Core</h4>
+                  <div class="skills-grid">
+                    <div class="skill-tag">HTML5 & CSS3</div>
+                    <div class="skill-tag">JavaScript (ES6+)</div>
+                    <div class="skill-tag">React.js</div>
+                    <div class="skill-tag">Next.js</div>
+                    <div class="skill-tag">Vite & Bundlers</div>
+                    <div class="skill-tag">D3.js Visualization</div>
+                  </div>
+                </div>
+                <div class="skills-category glass-panel">
+                  <h4>Backend & Database</h4>
+                  <div class="skills-grid">
+                    <div class="skill-tag">Node.js</div>
+                    <div class="skill-tag">Express & APIs</div>
+                    <div class="skill-tag">GraphQL</div>
+                    <div class="skill-tag">MongoDB & PostgreSQL</div>
+                    <div class="skill-tag">Redis Cache</div>
+                    <div class="skill-tag">Go Language</div>
+                  </div>
+                </div>
+                <div class="skills-category glass-panel">
+                  <h4>DevOps & Tools</h4>
+                  <div class="skills-grid">
+                    <div class="skill-tag">Git & GitHub</div>
+                    <div class="skill-tag">Docker</div>
+                    <div class="skill-tag">Firebase & Cloud</div>
+                    <div class="skill-tag">Vercel & Netlify</div>
+                    <div class="skill-tag">Linux Systems</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -255,7 +307,18 @@
 
         <!-- B. Dashboard Manager Panel (Hidden initially) -->
         <div class="admin-dashboard-container" id="adminDashboardContainer" style="display: none;">
-          <div class="admin-top-actions glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <!-- Admin Sub-Navigation Tabs -->
+          <div class="admin-tabs" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem;">
+            <button class="btn btn-primary admin-tab-btn" id="tabAdminProjects" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">
+              Manage Projects
+            </button>
+            <button class="btn btn-secondary admin-tab-btn" id="tabAdminResume" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">
+              Edit Resume
+            </button>
+          </div>
+
+          <div id="adminProjectsView">
+            <div class="admin-top-actions glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
               <p style="font-size: 0.85rem; color: var(--text-secondary);">Logged in as:</p>
               <h4 id="adminEmailBadge" class="glow-text" style="font-size: 1.05rem;">bandit1999main@gmail.com</h4>
@@ -331,6 +394,50 @@
               <!-- Dynamic Rows inserted here via JS -->
             </div>
           </div>
+          </div> <!-- End #adminProjectsView -->
+
+          <!-- C. Resume Manager Panel (Hidden initially) -->
+          <div id="adminResumeView" style="display: none;">
+            <div class="resume-form-panel glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+              <h3 style="margin-bottom: 1.5rem;" class="glow-text">Edit Resume Data</h3>
+              <form id="resumeEditorForm" class="contact-form">
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                  <label for="resumeInputBio">Bio / Professional Summary</label>
+                  <textarea id="resumeInputBio" class="form-input" placeholder="Summarize your professional background..." style="min-height: 120px;" required></textarea>
+                </div>
+
+                <!-- Experience List Editor -->
+                <div style="margin-bottom: 2rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <h4 style="color: var(--text-primary); font-family: var(--font-title); font-size: 1.1rem;">Work Experience Timeline</h4>
+                    <button type="button" class="btn btn-secondary" id="btnAddExpInput" style="padding: 0.4rem 1rem; font-size: 0.85rem;">
+                      + Add Job Experience
+                    </button>
+                  </div>
+                  <div id="resumeExpInputsContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Dynamic rows of experience inputs will be loaded here -->
+                  </div>
+                </div>
+
+                <!-- Education List Editor -->
+                <div style="margin-bottom: 2rem; border-top: 1px solid var(--border-glass); padding-top: 1.5rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <h4 style="color: var(--text-primary); font-family: var(--font-title); font-size: 1.1rem;">Education Timeline</h4>
+                    <button type="button" class="btn btn-secondary" id="btnAddEduInput" style="padding: 0.4rem 1rem; font-size: 0.85rem;">
+                      + Add Education Item
+                    </button>
+                  </div>
+                  <div id="resumeEduInputsContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Dynamic rows of education inputs will be loaded here -->
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid var(--border-glass); padding-top: 1.5rem;">
+                  <button type="submit" class="btn btn-primary" id="btnSaveResume">Save Resume</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -365,6 +472,24 @@
             <h4>Technologies Used</h4>
             <div class="project-tags" id="modalTags">
               <!-- Tags rendered here -->
+            </div>
+          </div>
+
+          <!-- Comments Section (Interactive Discussion Board) -->
+          <div class="modal-comments" style="margin-top: 2rem; border-top: 1px solid var(--border-glass); padding-top: 2rem;">
+            <h4 style="font-family: var(--font-title); font-size: 1.25rem; margin-bottom: 1.2rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-teal);"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Discussion (<span id="modalCommentCount">0</span>)
+            </h4>
+            
+            <!-- Comment Form Input -->
+            <div id="commentInputArea" style="margin-bottom: 1.5rem;">
+              <!-- Dynamic via JS based on auth states -->
+            </div>
+            
+            <!-- Comments rendering target -->
+            <div id="modalCommentsList" style="display: flex; flex-direction: column; gap: 1rem; max-height: 350px; overflow-y: auto; padding-right: 0.5rem;">
+              <!-- Dynamic items inserted via JS -->
             </div>
           </div>
         </div>

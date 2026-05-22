@@ -481,3 +481,211 @@ export async function toggleFavoriteProject(projectId) {
 function saveLocalFavorites(userId, favs) {
   localStorage.setItem(`bandit_favs_${userId}`, JSON.stringify(favs));
 }
+
+// --- RESUME / ABOUT ME ACTIONS ---
+const LOCAL_ABOUT_KEY = 'bandit_about_me';
+
+const DEFAULT_ABOUT_DATA = {
+  bio: "I am a digital artisan who loves building high-performance web applications. My coding journey revolves around creating beautiful, user-centered software designs backed by secure, optimized backend logic.\n\nI believe that premium products lie at the intersection of stunning design and stellar performance. I'm constantly learning new web patterns and leveraging cutting-edge web platform capabilities to build next-generation applications.",
+  experience: [
+    {
+      id: "exp1",
+      role: "Senior Full-Stack Developer",
+      company: "Creative Digital Agency",
+      duration: "2024 - Present",
+      description: "Led development of premium React web applications, integrated Firebase/Cloud architectures, optimized front-end performance by 40%, and mentored junior engineers."
+    },
+    {
+      id: "exp2",
+      role: "Full-Stack Web Engineer",
+      company: "Tech Innovation Lab",
+      duration: "2022 - 2024",
+      description: "Designed robust API microservices with Node.js and Go. Implemented sleek, responsive user interfaces and managed PostgreSQL databases."
+    }
+  ],
+  education: [
+    {
+      id: "edu1",
+      degree: "Bachelor of Science in Computer Science",
+      school: "King Mongkut's Institute of Technology",
+      duration: "2018 - 2022",
+      description: "Graduated with Honors. Specialized in Software Engineering, Web Technology, and Intelligent Systems."
+    }
+  ]
+};
+
+export async function fetchAboutMe() {
+  if (useFirebase) {
+    try {
+      const { doc, getDoc, setDoc } = await import('firebase/firestore');
+      const docRef = doc(db, "about", "me");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      } else {
+        // Seed with default resume
+        await setDoc(docRef, DEFAULT_ABOUT_DATA);
+        return DEFAULT_ABOUT_DATA;
+      }
+    } catch (error) {
+      console.error("❌ Firebase fetch resume failed. Falling back to local.", error);
+      return getLocalAboutMe();
+    }
+  } else {
+    return getLocalAboutMe();
+  }
+}
+
+function getLocalAboutMe() {
+  const data = localStorage.getItem(LOCAL_ABOUT_KEY);
+  if (!data) {
+    localStorage.setItem(LOCAL_ABOUT_KEY, JSON.stringify(DEFAULT_ABOUT_DATA));
+    return DEFAULT_ABOUT_DATA;
+  }
+  return JSON.parse(data);
+}
+
+export async function updateAboutMe(aboutData) {
+  if (useFirebase) {
+    try {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const docRef = doc(db, "about", "me");
+      await setDoc(docRef, aboutData);
+      return aboutData;
+    } catch (error) {
+      console.error("❌ Firebase update resume failed. Saving locally.", error);
+      saveLocalAboutMe(aboutData);
+      return aboutData;
+    }
+  } else {
+    saveLocalAboutMe(aboutData);
+    return aboutData;
+  }
+}
+
+function saveLocalAboutMe(aboutData) {
+  localStorage.setItem(LOCAL_ABOUT_KEY, JSON.stringify(aboutData));
+}
+
+// --- COMMENTS ACTIONS ---
+const LOCAL_COMMENTS_KEY = 'bandit_comments';
+
+export async function fetchComments(projectId) {
+  if (useFirebase) {
+    try {
+      const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore');
+      const q = query(
+        collection(db, "comments"),
+        where("projectId", "==", Number(projectId)),
+        orderBy("timestamp", "asc")
+      );
+      const querySnapshot = await getDocs(q);
+      const list = [];
+      querySnapshot.forEach((doc) => {
+        list.push({ ...doc.data(), commentId: doc.id });
+      });
+      return list;
+    } catch (error) {
+      console.error("❌ Firebase fetch comments failed. Falling back to local.", error);
+      return getLocalComments(projectId);
+    }
+  } else {
+    return getLocalComments(projectId);
+  }
+}
+
+function getLocalComments(projectId) {
+  const data = localStorage.getItem(LOCAL_COMMENTS_KEY);
+  const list = data ? JSON.parse(data) : [];
+  return list
+    .filter(c => c.projectId === Number(projectId))
+    .sort((a, b) => a.timestamp - b.timestamp);
+}
+
+export async function addComment(projectId, content) {
+  const user = getActiveUser();
+  if (!user) throw new Error("Authentication required to post comments.");
+
+  const newComment = {
+    projectId: Number(projectId),
+    content: content,
+    uid: user.uid || user.email,
+    authorName: user.displayName || user.email.split('@')[0],
+    authorEmail: user.email,
+    timestamp: Date.now()
+  };
+
+  if (useFirebase) {
+    try {
+      const { collection, addDoc } = await import('firebase/firestore');
+      const docRef = await addDoc(collection(db, "comments"), newComment);
+      return { ...newComment, commentId: docRef.id };
+    } catch (error) {
+      console.error("❌ Firebase add comment failed. Saving locally.", error);
+      return addLocalComment(newComment);
+    }
+  } else {
+    return addLocalComment(newComment);
+  }
+}
+
+function addLocalComment(comment) {
+  const data = localStorage.getItem(LOCAL_COMMENTS_KEY);
+  const list = data ? JSON.parse(data) : [];
+  const fullComment = { ...comment, commentId: `comment-${Date.now()}` };
+  list.push(fullComment);
+  localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(list));
+  return fullComment;
+}
+
+export async function deleteComment(commentId, projectId) {
+  const user = getActiveUser();
+  if (!user) throw new Error("Authentication required to delete comments.");
+
+  // Check if admin or the owner (we'll double check role/email)
+  const isAdmin = user.role === 'admin' || user.email === DEFAULT_ADMIN_EMAIL;
+  
+  if (useFirebase) {
+    try {
+      const { doc, getDoc, deleteDoc } = await import('firebase/firestore');
+      const docRef = doc(db, "comments", commentId);
+      
+      // Fetch comment first to verify ownership if not admin
+      if (!isAdmin) {
+        const snap = await getDoc(docRef);
+        if (snap.exists() && snap.data().uid !== user.uid) {
+          throw new Error("Unauthorized: You do not own this comment.");
+        }
+      }
+      
+      await deleteDoc(docRef);
+      return true;
+    } catch (error) {
+      console.error("❌ Firebase delete comment failed. Falling back to local.", error);
+      return deleteLocalComment(commentId);
+    }
+  } else {
+    return deleteLocalComment(commentId);
+  }
+}
+
+function deleteLocalComment(commentId) {
+  const data = localStorage.getItem(LOCAL_COMMENTS_KEY);
+  if (!data) return false;
+  let list = JSON.parse(data);
+  const comment = list.find(c => c.commentId === commentId);
+  if (!comment) return false;
+  
+  // Verify authorization
+  const user = getActiveUser();
+  const isAdmin = user && (user.role === 'admin' || user.email === DEFAULT_ADMIN_EMAIL);
+  const isOwner = user && (user.uid === comment.uid || user.email === comment.uid);
+  
+  if (!isAdmin && !isOwner) {
+    throw new Error("Unauthorized to delete comment");
+  }
+  
+  list = list.filter(c => c.commentId !== commentId);
+  localStorage.setItem(LOCAL_COMMENTS_KEY, JSON.stringify(list));
+  return true;
+}

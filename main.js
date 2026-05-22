@@ -13,10 +13,16 @@ import {
   getActiveUser,
   logoutUser,
   fetchUserFavorites,
-  toggleFavoriteProject
+  toggleFavoriteProject,
+  fetchAboutMe,
+  updateAboutMe,
+  fetchComments,
+  addComment,
+  deleteComment
 } from './database.js';
 
 let projectsList = [];
+let currentOpenProjectId = null;
 
 // --- CONFIG & CONSTANTS ---
 const TYPING_ROLES = ["Full-Stack Developer", "Creative UI Engineer", "Software Artisan", "Problem Solver"];
@@ -275,13 +281,20 @@ function openProjectModal(project) {
   modalGithubLink.href = project.githubUrl;
   modalDemoLink.href = project.demoUrl;
   
+  currentOpenProjectId = project.id;
+  
   projectModal.classList.add('active');
   document.body.style.overflow = 'hidden';
+
+  // Load and render comments for this project
+  loadAndRenderComments(project.id);
+  setupCommentInputArea(project.id);
 }
 
 function closeProjectModal() {
   projectModal.classList.remove('active');
   document.body.style.overflow = '';
+  currentOpenProjectId = null;
 }
 
 modalCloseBtn.addEventListener('click', closeProjectModal);
@@ -373,6 +386,9 @@ async function loadAndRenderProjects() {
   if (getAdminUser()) {
     renderAdminProjects();
   }
+  
+  // Load and render public resume timeline
+  await loadAndRenderResume();
 }
 
 function showProjectForm(isEdit = false) {
@@ -724,6 +740,12 @@ onAuthChanged(async (user) => {
   
   // Re-render the creative showcase projects to reactively draw favorites hearts
   renderProjects();
+  
+  // Live-refresh open project modal comments if user log state changes
+  if (currentOpenProjectId) {
+    loadAndRenderComments(currentOpenProjectId);
+    setupCommentInputArea(currentOpenProjectId);
+  }
 });
 
 // Setup events
@@ -1286,4 +1308,470 @@ if (canvas) {
 
   // Start game engine loop
   requestAnimationFrame(gameLoop);
+}
+
+// ============================================
+// --- 8. DIGITAL TIMELINE RESUME SYSTEM & ADMIN RESUME PANEL ---
+// ============================================
+let currentAboutData = null;
+
+async function loadAndRenderResume() {
+  try {
+    currentAboutData = await fetchAboutMe();
+    
+    // Render Professional Bio
+    const bioTextEl = document.getElementById('resumeBio');
+    if (bioTextEl) {
+      bioTextEl.textContent = currentAboutData.bio || "";
+    }
+    
+    // Render Experience Timeline
+    const expListEl = document.getElementById('resumeExperienceList');
+    if (expListEl) {
+      expListEl.innerHTML = "";
+      const experiences = currentAboutData.experience || [];
+      if (experiences.length === 0) {
+        expListEl.innerHTML = `<p style="color: var(--text-muted); font-size: 0.95rem;">No work experience listed yet.</p>`;
+      } else {
+        experiences.forEach(exp => {
+          const item = document.createElement('div');
+          item.className = 'resume-timeline-item';
+          item.innerHTML = `
+            <div class="resume-timeline-node"></div>
+            <div class="resume-timeline-content">
+              <div class="resume-timeline-header">
+                <div>
+                  <h5 class="resume-timeline-role">${exp.role}</h5>
+                  <div class="resume-timeline-company">${exp.company}</div>
+                </div>
+                <span class="resume-timeline-duration">${exp.duration}</span>
+              </div>
+              <p class="resume-timeline-desc">${exp.description}</p>
+            </div>
+          `;
+          expListEl.appendChild(item);
+        });
+      }
+    }
+    
+    // Render Education Timeline
+    const eduListEl = document.getElementById('resumeEducationList');
+    if (eduListEl) {
+      eduListEl.innerHTML = "";
+      const education = currentAboutData.education || [];
+      if (education.length === 0) {
+        eduListEl.innerHTML = `<p style="color: var(--text-muted); font-size: 0.95rem;">No education details listed yet.</p>`;
+      } else {
+        education.forEach(edu => {
+          const item = document.createElement('div');
+          item.className = 'resume-timeline-item';
+          item.innerHTML = `
+            <div class="resume-timeline-node"></div>
+            <div class="resume-timeline-content">
+              <div class="resume-timeline-header">
+                <div>
+                  <h5 class="resume-timeline-role">${edu.degree}</h5>
+                  <div class="resume-timeline-company">${edu.school}</div>
+                </div>
+                <span class="resume-timeline-duration">${edu.duration}</span>
+              </div>
+              <p class="resume-timeline-desc">${edu.description}</p>
+            </div>
+          `;
+          eduListEl.appendChild(item);
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load and render resume:", error);
+  }
+}
+
+// --- ADMIN RESUME CONTROLS ---
+const tabAdminProjects = document.getElementById('tabAdminProjects');
+const tabAdminResume = document.getElementById('tabAdminResume');
+const adminProjectsView = document.getElementById('adminProjectsView');
+const adminResumeView = document.getElementById('adminResumeView');
+
+if (tabAdminProjects && tabAdminResume && adminProjectsView && adminResumeView) {
+  tabAdminProjects.addEventListener('click', () => {
+    tabAdminProjects.className = 'btn btn-primary admin-tab-btn';
+    tabAdminResume.className = 'btn btn-secondary admin-tab-btn';
+    adminProjectsView.style.display = 'block';
+    adminResumeView.style.display = 'none';
+  });
+
+  tabAdminResume.addEventListener('click', () => {
+    tabAdminProjects.className = 'btn btn-secondary admin-tab-btn';
+    tabAdminResume.className = 'btn btn-primary admin-tab-btn';
+    adminProjectsView.style.display = 'none';
+    adminResumeView.style.display = 'block';
+    prefillAdminResumeForm();
+  });
+}
+
+const expInputsContainer = document.getElementById('resumeExpInputsContainer');
+const eduInputsContainer = document.getElementById('resumeEduInputsContainer');
+const btnAddExpInput = document.getElementById('btnAddExpInput');
+const btnAddEduInput = document.getElementById('btnAddEduInput');
+const resumeEditorForm = document.getElementById('resumeEditorForm');
+
+function prefillAdminResumeForm() {
+  if (!currentAboutData) return;
+  
+  const bioInput = document.getElementById('resumeInputBio');
+  if (bioInput) {
+    bioInput.value = currentAboutData.bio || '';
+  }
+  
+  if (expInputsContainer) {
+    expInputsContainer.innerHTML = '';
+    const experiences = currentAboutData.experience || [];
+    experiences.forEach(exp => {
+      addExperienceRow(exp.role, exp.company, exp.duration, exp.description, exp.id);
+    });
+  }
+  
+  if (eduInputsContainer) {
+    eduInputsContainer.innerHTML = '';
+    const educations = currentAboutData.education || [];
+    educations.forEach(edu => {
+      addEducationRow(edu.degree, edu.school, edu.duration, edu.description, edu.id);
+    });
+  }
+}
+
+function addExperienceRow(role = '', company = '', duration = '', description = '', id = '') {
+  if (!expInputsContainer) return;
+  
+  const rowId = id || `exp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const row = document.createElement('div');
+  row.className = 'dynamic-item-row';
+  row.dataset.id = rowId;
+  row.innerHTML = `
+    <div class="dynamic-item-fields">
+      <div class="form-group">
+        <label style="font-size: 0.8rem; color: var(--text-secondary);">Job Title / Role</label>
+        <input type="text" class="form-input exp-role" value="${role}" placeholder="Senior Web Developer" required />
+      </div>
+      <div class="form-group">
+        <label style="font-size: 0.8rem; color: var(--text-secondary);">Company Name</label>
+        <input type="text" class="form-input exp-company" value="${company}" placeholder="ACME Inc." required />
+      </div>
+      <div class="form-group">
+        <label style="font-size: 0.8rem; color: var(--text-secondary);">Duration</label>
+        <input type="text" class="form-input exp-duration" value="${duration}" placeholder="2024 - Present" required />
+      </div>
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label style="font-size: 0.8rem; color: var(--text-secondary);">Job Description</label>
+        <textarea class="form-input exp-description" placeholder="Describe achievements and duties..." style="min-height: 60px;" required>${description}</textarea>
+      </div>
+    </div>
+    <button type="button" class="btn-remove-row" title="Remove Experience">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+    </button>
+  `;
+  
+  row.querySelector('.btn-remove-row').addEventListener('click', () => {
+    row.remove();
+  });
+  
+  expInputsContainer.appendChild(row);
+}
+
+function addEducationRow(degree = '', school = '', duration = '', description = '', id = '') {
+  if (!eduInputsContainer) return;
+  
+  const rowId = id || `edu-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const row = document.createElement('div');
+  row.className = 'dynamic-item-row';
+  row.dataset.id = rowId;
+  row.innerHTML = `
+    <div class="dynamic-item-fields">
+      <div class="form-group">
+        <label style="font-size: 0.8rem; color: var(--text-secondary);">Degree / Major</label>
+        <input type="text" class="form-input edu-degree" value="${degree}" placeholder="B.Sc. in Computer Science" required />
+      </div>
+      <div class="form-group">
+        <label style="font-size: 0.8rem; color: var(--text-secondary);">School / University</label>
+        <input type="text" class="form-input edu-school" value="${school}" placeholder="Stanford University" required />
+      </div>
+      <div class="form-group">
+        <label style="font-size: 0.8rem; color: var(--text-secondary);">Duration</label>
+        <input type="text" class="form-input edu-duration" value="${duration}" placeholder="2018 - 2022" required />
+      </div>
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label style="font-size: 0.8rem; color: var(--text-secondary);">Description (Optional)</label>
+        <textarea class="form-input edu-description" placeholder="Honors, specializations, etc..." style="min-height: 60px;">${description}</textarea>
+      </div>
+    </div>
+    <button type="button" class="btn-remove-row" title="Remove Education">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+    </button>
+  `;
+  
+  row.querySelector('.btn-remove-row').addEventListener('click', () => {
+    row.remove();
+  });
+  
+  eduInputsContainer.appendChild(row);
+}
+
+if (btnAddExpInput) {
+  btnAddExpInput.addEventListener('click', () => addExperienceRow());
+}
+if (btnAddEduInput) {
+  btnAddEduInput.addEventListener('click', () => addEducationRow());
+}
+
+if (resumeEditorForm) {
+  resumeEditorForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const bioText = document.getElementById('resumeInputBio').value;
+    
+    const expRows = expInputsContainer.querySelectorAll('.dynamic-item-row');
+    const experiences = [];
+    expRows.forEach(row => {
+      experiences.push({
+        id: row.dataset.id,
+        role: row.querySelector('.exp-role').value,
+        company: row.querySelector('.exp-company').value,
+        duration: row.querySelector('.exp-duration').value,
+        description: row.querySelector('.exp-description').value
+      });
+    });
+    
+    const eduRows = eduInputsContainer.querySelectorAll('.dynamic-item-row');
+    const educations = [];
+    eduRows.forEach(row => {
+      educations.push({
+        id: row.dataset.id,
+        degree: row.querySelector('.edu-degree').value,
+        school: row.querySelector('.edu-school').value,
+        duration: row.querySelector('.edu-duration').value,
+        description: row.querySelector('.edu-description').value
+      });
+    });
+    
+    const updatedAboutData = {
+      bio: bioText,
+      experience: experiences,
+      education: educations
+    };
+    
+    const btnSave = document.getElementById('btnSaveResume');
+    const originalText = btnSave ? btnSave.textContent : 'Save Resume';
+    if (btnSave) {
+      btnSave.disabled = true;
+      btnSave.textContent = 'Saving...';
+    }
+    
+    try {
+      await updateAboutMe(updatedAboutData);
+      currentAboutData = updatedAboutData;
+      await loadAndRenderResume();
+      showToastNotification("Resume updated successfully!");
+    } catch (err) {
+      console.error("Failed to update resume:", err);
+      showToastNotification("Failed to update resume.", true);
+    } finally {
+      if (btnSave) {
+        btnSave.disabled = false;
+        btnSave.textContent = originalText;
+      }
+    }
+  });
+}
+
+// ============================================
+// --- 9. INTERACTIVE COMMENTS DISCUSSION SYSTEM ---
+// ============================================
+
+async function loadAndRenderComments(projectId) {
+  const commentsListEl = document.getElementById('modalCommentsList');
+  const commentCountEl = document.getElementById('modalCommentCount');
+  if (!commentsListEl) return;
+
+  try {
+    commentsListEl.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1rem 0;">Loading comments...</p>`;
+    const comments = await fetchComments(projectId);
+    
+    if (commentCountEl) {
+      commentCountEl.textContent = comments.length;
+    }
+    
+    commentsListEl.innerHTML = "";
+    if (comments.length === 0) {
+      commentsListEl.innerHTML = `<p style="color: var(--text-muted); font-size: 0.92rem; text-align: center; padding: 1.5rem 0;">No comments yet. Start the discussion!</p>`;
+      return;
+    }
+
+    const activeUser = getActiveUser();
+    const isAdmin = activeUser && (activeUser.role === 'admin' || activeUser.email === 'bandit1999main@gmail.com');
+
+    comments.forEach(comment => {
+      const isOwner = activeUser && (activeUser.uid === comment.uid || activeUser.email === comment.uid);
+      const canDelete = isAdmin || isOwner;
+      
+      const item = document.createElement('div');
+      item.className = 'comment-item';
+      
+      const dateString = formatCommentDate(comment.timestamp);
+      const firstLetter = (comment.authorName || 'U').charAt(0).toUpperCase();
+
+      item.innerHTML = `
+        <div class="comment-avatar">${firstLetter}</div>
+        <div class="comment-content-block">
+          <div class="comment-header">
+            <div>
+              <span class="comment-author">${comment.authorName}</span>
+              <span class="comment-meta" style="margin-left: 0.5rem;">${dateString}</span>
+            </div>
+            ${canDelete ? `
+              <button class="comment-delete-btn" data-id="${comment.commentId}" title="Delete comment">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            ` : ''}
+          </div>
+          <p class="comment-body">${escapeHTML(comment.content)}</p>
+        </div>
+      `;
+
+      if (canDelete) {
+        const delBtn = item.querySelector('.comment-delete-btn');
+        if (delBtn) {
+          delBtn.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to delete this comment?")) {
+              try {
+                await deleteComment(comment.commentId, projectId);
+                showToastNotification("Comment deleted successfully!");
+                await loadAndRenderComments(projectId);
+              } catch (err) {
+                console.error("Failed to delete comment:", err);
+                showToastNotification("Failed to delete comment.", true);
+              }
+            }
+          });
+        }
+      }
+
+      commentsListEl.appendChild(item);
+    });
+  } catch (error) {
+    console.error("Failed to load comments:", error);
+    commentsListEl.innerHTML = `<p style="color: #ef4444; font-size: 0.9rem; text-align: center;">Error loading discussion board.</p>`;
+  }
+}
+
+function setupCommentInputArea(projectId) {
+  const inputAreaEl = document.getElementById('commentInputArea');
+  if (!inputAreaEl) return;
+
+  const activeUser = getActiveUser();
+  
+  if (!activeUser) {
+    inputAreaEl.innerHTML = `
+      <div class="comment-auth-prompt glass-panel">
+        <p>You must be signed in to join the discussion.</p>
+        <button class="btn btn-primary" id="btnCommentSignIn" style="padding: 0.5rem 1.25rem; font-size: 0.85rem;">
+          Sign In / Join
+        </button>
+      </div>
+    `;
+    
+    const btnSignIn = document.getElementById('btnCommentSignIn');
+    if (btnSignIn) {
+      btnSignIn.addEventListener('click', () => {
+        openAuthModal('guest');
+      });
+    }
+  } else {
+    inputAreaEl.innerHTML = `
+      <form class="comment-form" id="commentForm">
+        <textarea id="commentTextarea" placeholder="Share your thoughts on this project..." required></textarea>
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary" id="btnPostComment" style="padding: 0.5rem 1.25rem; font-size: 0.85rem;">
+            Post Comment
+          </button>
+        </div>
+      </form>
+    `;
+
+    const commentForm = document.getElementById('commentForm');
+    if (commentForm) {
+      commentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const textarea = document.getElementById('commentTextarea');
+        const content = textarea.value.trim();
+        if (!content) return;
+
+        const btnSubmit = document.getElementById('btnPostComment');
+        if (btnSubmit) {
+          btnSubmit.disabled = true;
+          btnSubmit.textContent = 'Posting...';
+        }
+
+        try {
+          await addComment(projectId, content);
+          textarea.value = '';
+          showToastNotification("Comment posted!");
+          await loadAndRenderComments(projectId);
+        } catch (err) {
+          console.error("Failed to post comment:", err);
+          showToastNotification("Failed to post comment.", true);
+        } finally {
+          if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Post Comment';
+          }
+        }
+      });
+    }
+  }
+}
+
+function formatCommentDate(timestamp) {
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHrs = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHrs / 24);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+  if (diffHrs < 24) return `${diffHrs} hour${diffHrs > 1 ? 's' : ''} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function escapeHTML(str) {
+  return str.replace(/[&<>'"]/g, 
+    tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag] || tag)
+  );
+}
+
+function showToastNotification(message, isError = false) {
+  if (successToast) {
+    const toastText = successToast.querySelector('.toast-text') || successToast;
+    toastText.textContent = message;
+    successToast.style.borderColor = isError ? '#ef4444' : 'var(--accent-teal)';
+    successToast.style.boxShadow = isError ? '0 0 20px rgba(239, 68, 68, 0.3)' : '0 0 20px rgba(20, 184, 166, 0.3)';
+    
+    successToast.classList.add('active');
+    setTimeout(() => {
+      successToast.classList.remove('active');
+    }, 4000);
+  } else {
+    alert(message);
+  }
 }

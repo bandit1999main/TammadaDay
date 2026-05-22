@@ -1343,3 +1343,368 @@ footer {
     transform: translateY(0);
   }
 }
+
+/* --- PREMIUM DIGITAL RESUME & TIMELINE --- */
+.resume-container {
+  margin-top: 2rem;
+  padding: 3rem;
+  overflow: hidden;
+}
+
+.resume-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.resume-title-block h3 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.resume-subtitle-text {
+  font-size: 1.1rem;
+  color: var(--accent-teal);
+  font-weight: 500;
+}
+
+.resume-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.resume-contact-info p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resume-divider {
+  height: 1px;
+  background: linear-gradient(90deg, var(--border-glass) 0%, rgba(20, 184, 166, 0.4) 50%, var(--border-glass) 100%);
+  margin-bottom: 3rem;
+}
+
+.resume-grid {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 3.5rem;
+}
+
+@media (max-width: 992px) {
+  .resume-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  .resume-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .resume-contact-info {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+.resume-section {
+  margin-bottom: 3rem;
+}
+
+.resume-section:last-child {
+  margin-bottom: 0;
+}
+
+.resume-section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.8rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 0.5rem;
+}
+
+.resume-bio-text {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  font-size: 1.05rem;
+}
+
+/* Timeline Layout */
+.resume-timeline {
+  position: relative;
+  padding-left: 2rem;
+  border-left: 2px dashed rgba(20, 184, 166, 0.2);
+  margin-left: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.resume-timeline-item {
+  position: relative;
+}
+
+.resume-timeline-node {
+  position: absolute;
+  left: calc(-2rem - 6px); /* Align with the border */
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-teal);
+  box-shadow: 0 0 10px var(--accent-teal), 0 0 20px var(--accent-teal);
+  transition: transform var(--transition-fast);
+}
+
+.resume-timeline-item:hover .resume-timeline-node {
+  transform: scale(1.5);
+  background: var(--accent-indigo);
+  box-shadow: 0 0 10px var(--accent-indigo), 0 0 20px var(--accent-indigo);
+}
+
+.resume-timeline-content {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--border-glass);
+  padding: 1.5rem;
+  border-radius: 14px;
+  transition: all var(--transition-fast);
+}
+
+.resume-timeline-item:hover .resume-timeline-content {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(20, 184, 166, 0.3);
+  transform: translateX(5px);
+}
+
+.resume-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.resume-timeline-role {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.resume-timeline-company {
+  font-size: 0.95rem;
+  color: var(--accent-teal);
+  font-weight: 500;
+  margin-top: 0.1rem;
+}
+
+.resume-timeline-duration {
+  background: rgba(20, 184, 166, 0.1);
+  color: var(--accent-teal);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.resume-timeline-desc {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.resume-skills-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- DISCUSSION & COMMENTS STYLES --- */
+.modal-comments {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-glass);
+}
+
+.comment-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 1rem;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.comment-item:hover {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.comment-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+  flex-shrink: 0;
+}
+
+.comment-content-block {
+  flex-grow: 1;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.comment-author {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.comment-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.comment-body {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.comment-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  opacity: 0.6;
+}
+
+.comment-delete-btn:hover {
+  color: #ef4444;
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* Comment Input Area Glassmorphism Focus */
+.comment-form textarea {
+  width: 100%;
+  min-height: 80px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-glass);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  resize: vertical;
+  margin-bottom: 0.75rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.comment-form textarea:focus {
+  outline: none;
+  border-color: var(--accent-teal);
+  box-shadow: 0 0 10px var(--glow-teal);
+}
+
+.comment-auth-prompt {
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px dashed rgba(99, 102, 241, 0.25);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.comment-auth-prompt p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Admin console inner sub-tabs and inputs layout */
+.admin-tab-btn {
+  transition: all var(--transition-fast);
+}
+.admin-tab-btn.btn-secondary {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+}
+.admin-tab-btn.btn-secondary:hover {
+  border-color: var(--border-glass-hover);
+  color: var(--text-primary);
+}
+
+.dynamic-item-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  position: relative;
+}
+
+.dynamic-item-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  flex-grow: 1;
+}
+
+.btn-remove-row {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.6rem; /* aligns roughly with fields */
+  transition: all var(--transition-fast);
+}
+
+.btn-remove-row:hover {
+  background: rgba(239, 68, 68, 0.25);
+  transform: translateY(-1px);
+}
