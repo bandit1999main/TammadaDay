@@ -39,7 +39,3 @@ Welcome to my next-generation developer portfolio! This project showcases a beau
    npm run dev
    ```
 3. Open `http://localhost:5173/` in your browser.
-
-### Admin Credentials
-* **Default Email**: `bandit1999main@gmail.com`
-* **Default Password**: `admin`
