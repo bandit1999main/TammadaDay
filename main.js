@@ -957,6 +957,12 @@ if (canvas) {
 
   // --- CONTROLS LISTENERS ---
   window.addEventListener('keydown', (e) => {
+    // If the user is typing in a form input or textarea, ignore key presses for the game character
+    const targetTag = e.target.tagName;
+    if (targetTag === 'INPUT' || targetTag === 'TEXTAREA' || e.target.isContentEditable) {
+      return;
+    }
+
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", " "].includes(e.key)) {
       if (document.getElementById('home').classList.contains('active')) {
         e.preventDefault();
@@ -967,6 +973,11 @@ if (canvas) {
   });
 
   window.addEventListener('keyup', (e) => {
+    // If the user is typing in a form input or textarea, ignore key releases for the game character
+    const targetTag = e.target.tagName;
+    if (targetTag === 'INPUT' || targetTag === 'TEXTAREA' || e.target.isContentEditable) {
+      return;
+    }
     keys[e.key.toLowerCase()] = false;
   });
 
